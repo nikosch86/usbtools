@@ -1,1 +1,0 @@
-"**/*": "rsync -r --exclude node_modules ${dir} sysadm@192.168.5.226:"
