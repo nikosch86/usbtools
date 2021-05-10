@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "shelljs": "^0.8.3",
     "usb": "^1.6.2"
   }
