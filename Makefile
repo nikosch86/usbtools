@@ -7,6 +7,7 @@ CFLAGS = -Wall -Wextra -O2 -g
 LDFLAGS = -lusb-1.0
 
 # Targets
+TARGET_DIR = build
 TARGET = usbtools
 OLD_TARGET = usbreset
 SRCS = main.c
@@ -15,13 +16,17 @@ OBJS = $(SRCS:.c=.o)
 # Default target
 all: $(TARGET)
 
+# Create build directory
+$(TARGET_DIR):
+	mkdir -p $(TARGET_DIR)
+
 # Build main executable
-$(TARGET): $(OBJS)
-	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
+$(TARGET): $(TARGET_DIR) $(OBJS)
+	$(CC) $(OBJS) -o $(TARGET_DIR)/$(TARGET) $(LDFLAGS)
 
 # Build old usbreset utility (for compatibility)
-$(OLD_TARGET): usbreset.c
-	$(CC) $(CFLAGS) usbreset.c -o $(OLD_TARGET)
+$(OLD_TARGET): $(TARGET_DIR) usbreset.c
+	$(CC) $(CFLAGS) usbreset.c -o $(TARGET_DIR)/$(OLD_TARGET)
 
 # Compile object files
 %.o: %.c
@@ -30,7 +35,7 @@ $(OLD_TARGET): usbreset.c
 # Install (requires sudo)
 install: $(TARGET)
 	@echo "Installing $(TARGET) to /usr/local/bin"
-	@sudo cp $(TARGET) /usr/local/bin/
+	@sudo cp $(TARGET_DIR)/$(TARGET) /usr/local/bin/
 	@sudo chmod +x /usr/local/bin/$(TARGET)
 	@echo "Installation complete"
 
@@ -42,23 +47,24 @@ uninstall:
 
 # Clean build artifacts
 clean:
-	rm -f $(OBJS) $(TARGET) $(OLD_TARGET)
+	rm -f $(OBJS) $(TARGET_DIR)/$(TARGET) $(TARGET_DIR)/$(OLD_TARGET)
 	rm -f *.o
+	rmdir $(TARGET_DIR) 2>/dev/null || true
 
 # Run the tool (requires sudo)
 run: $(TARGET)
 	@echo "Running USB Tools (requires root privileges)"
-	sudo ./$(TARGET)
+	sudo ./$(TARGET_DIR)/$(TARGET)
 
 # Test build (compile check)
 test: $(TARGET)
 	@echo "Build test passed - binary created successfully"
 	@echo "Testing binary exists..."
-	@test -f $(TARGET) && echo "✓ Binary exists"
+	@test -f $(TARGET_DIR)/$(TARGET) && echo "✓ Binary exists"
 	@echo "Testing binary is executable..."
-	@test -x $(TARGET) && echo "✓ Binary is executable"
+	@test -x $(TARGET_DIR)/$(TARGET) && echo "✓ Binary is executable"
 	@echo "Checking library dependencies..."
-	@ldd $(TARGET) | grep -q libusb && echo "✓ libusb linked correctly"
+	@ldd $(TARGET_DIR)/$(TARGET) | grep -q libusb && echo "✓ libusb linked correctly"
 	@echo "All tests passed"
 
 # Check dependencies
